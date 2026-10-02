@@ -29,20 +29,34 @@ function Brush($r, $g, $b) {
 
 # ---- Screenshot ----
 
+# GDI+ high-quality bicubic averages every source pixel when shrinking, which keeps text crisp on
+# large reductions (e.g. a 3840x2400 capture down to 1280x800). WPF's renderer only samples a few.
+Add-Type -AssemblyName System.Drawing
 $srcPath = Join-Path $root 'screenshot.png'
-$src = New-Object System.Windows.Media.Imaging.BitmapImage
-$src.BeginInit(); $src.CacheOption = 'OnLoad'; $src.UriSource = New-Object System.Uri $srcPath; $src.EndInit()
-
-$w = 1280; $h = 800
-$scale = [Math]::Min($w / $src.PixelWidth, $h / $src.PixelHeight)
-$dw = $src.PixelWidth * $scale; $dh = $src.PixelHeight * $scale
-$visual = New-Object System.Windows.Media.DrawingVisual
-$ctx = $visual.RenderOpen()
-$ctx.DrawRectangle([System.Windows.Media.Brushes]::Black, $null, (New-Object System.Windows.Rect 0, 0, $w, $h))
-$ctx.DrawImage($src, (New-Object System.Windows.Rect (($w - $dw) / 2), (($h - $dh) / 2), $dw, $dh))
-$ctx.Close()
-[System.Windows.Media.RenderOptions]::SetBitmapScalingMode($visual, 'HighQuality')
-Save-Png $visual $w $h (Join-Path $outDir 'screenshot-1.png')
+$src = [System.Drawing.Image]::FromFile($srcPath)
+try {
+  $w = 1280; $h = 800
+  $scale = [Math]::Min($w / $src.Width, $h / $src.Height)
+  $dw = [int][Math]::Round($src.Width * $scale); $dh = [int][Math]::Round($src.Height * $scale)
+  $out = New-Object System.Drawing.Bitmap $w, $h, ([System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
+  $g = [System.Drawing.Graphics]::FromImage($out)
+  $g.Clear([System.Drawing.Color]::Black)
+  $g.InterpolationMode = 'HighQualityBicubic'
+  $g.PixelOffsetMode = 'HighQuality'
+  $g.CompositingQuality = 'HighQuality'
+  # Clamp sampling at the image edges so the border doesn't pick up a dark halo.
+  $attrs = New-Object System.Drawing.Imaging.ImageAttributes
+  $attrs.SetWrapMode('TileFlipXY')
+  $dest = New-Object System.Drawing.Rectangle ([int](($w - $dw) / 2)), ([int](($h - $dh) / 2)), $dw, $dh
+  $g.DrawImage($src, $dest, 0, 0, $src.Width, $src.Height, 'Pixel', $attrs)
+  $g.Dispose()
+  $shotPath = Join-Path $outDir 'screenshot-1.png'
+  $out.Save($shotPath, [System.Drawing.Imaging.ImageFormat]::Png)
+  $out.Dispose()
+  Write-Host "Wrote $shotPath"
+} finally {
+  $src.Dispose()
+}
 
 # ---- Small promo tile ----
 
