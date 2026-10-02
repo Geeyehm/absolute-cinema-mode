@@ -1,0 +1,125 @@
+/*
+ * All rules are gated on classes that content.js sets on <html>:
+ *   .bcm-theater        - extension enabled and ytd-watch-flexy has [theater]
+ *   .bcm-chat-open      - live chat (or replay chat) is present and expanded
+ *   .bcm-hide-masthead  - auto-hide top bar setting is on
+ *   .bcm-masthead-shown - top bar temporarily revealed by hover/focus
+ * --bcm-chat-w is set on <html> from the chat width setting.
+ */
+
+/* ---- Player fills the first screen ---- */
+
+html.bcm-theater ytd-watch-flexy {
+  position: relative;
+}
+
+html.bcm-theater ytd-watch-flexy #full-bleed-container {
+  width: 100% !important;
+  height: calc(100vh - var(--bcm-top-offset, 0px)) !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+html.bcm-theater ytd-watch-flexy #player-full-bleed-container,
+html.bcm-theater ytd-watch-flexy #full-bleed-container #player-container,
+html.bcm-theater ytd-watch-flexy #full-bleed-container ytd-player,
+html.bcm-theater ytd-watch-flexy #full-bleed-container ytd-player #container,
+html.bcm-theater ytd-watch-flexy #full-bleed-container #movie_player {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+
+/* YouTube reserves this flex slot for chat beside the player. Size it to our chat width,
+   or collapse it when chat is closed so the video takes the full width. */
+html.bcm-theater ytd-watch-flexy #panels-full-bleed-container {
+  flex: 0 0 auto !important;
+  width: 0 !important;
+  min-width: 0 !important;
+}
+
+html.bcm-theater.bcm-chat-open ytd-watch-flexy #panels-full-bleed-container {
+  width: var(--bcm-chat-w) !important;
+}
+
+/* ---- Chat docked to the right of the player, scrolling with the page ---- */
+
+html.bcm-theater.bcm-chat-open ytd-watch-flexy #chat-container {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: var(--bcm-chat-w) !important;
+  height: calc(100vh - var(--bcm-top-offset, 0px)) !important;
+  margin: 0 !important;
+  z-index: 10;
+}
+
+/* In theater YouTube makes the chat frame position: fixed over the page; pin it to our container. */
+html.bcm-theater.bcm-chat-open ytd-watch-flexy ytd-live-chat-frame#chat {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  /* Keep the divider against the video and the bottom edge; drop the top and right edges. */
+  border-top-width: 0 !important;
+  border-right-width: 0 !important;
+}
+
+html.bcm-theater.bcm-chat-open ytd-watch-flexy ytd-live-chat-frame#chat #chatframe {
+  border-radius: 0 !important;
+}
+
+/* YouTube pads the content below the player to make room for its own docked chat.
+   Ours scrolls away with the player, so give that space back. */
+html.bcm-theater ytd-watch-flexy #columns {
+  padding-right: 0 !important;
+}
+
+/* ---- Auto-hiding top bar ---- */
+
+html.bcm-theater.bcm-hide-masthead {
+  --bcm-top-offset: 0px;
+}
+
+html.bcm-theater:not(.bcm-hide-masthead) {
+  --bcm-top-offset: var(--ytd-masthead-height, 56px);
+}
+
+html.bcm-theater.bcm-hide-masthead ytd-app #page-manager {
+  margin-top: 0 !important;
+}
+
+html.bcm-theater.bcm-hide-masthead #masthead-container {
+  transform: translateY(-100%) !important;
+  transition: transform 0.15s ease-out;
+}
+
+html.bcm-theater.bcm-hide-masthead.bcm-masthead-shown #masthead-container {
+  transform: none !important;
+  background: var(--yt-spec-base-background, #0f0f0f);
+  z-index: 2147483646 !important;
+}
+
+/* Thin strip along the top edge that reveals the top bar on hover. */
+#bcm-hot-zone {
+  display: none;
+}
+
+html.bcm-theater.bcm-hide-masthead #bcm-hot-zone {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  z-index: 2147483647;
+}
+
+html.bcm-theater.bcm-hide-masthead.bcm-masthead-shown #bcm-hot-zone {
+  display: none;
+}

@@ -1,0 +1,9 @@
+/*
+ * Runs inside the chat replay iframe (/live_chat_replay).
+ * On live chat, #panel-pages holds the message input and its top border divides it from the messages.
+ * Replays have no input, so the empty strip's border sits directly on the chat frame's own bottom
+ * border and doubles it.
+ */
+#panel-pages.yt-live-chat-renderer {
+  border-top: none !important;
+}

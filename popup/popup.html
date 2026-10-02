@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Absolute Cinema Mode</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h1>Absolute Cinema Mode</h1>
+
+  <label class="row">
+    <span>Enabled</span>
+    <input type="checkbox" id="enabled">
+  </label>
+
+  <label class="row">
+    <span>Auto-enable Cinema mode</span>
+    <input type="checkbox" id="autoTheater">
+  </label>
+
+  <label class="row">
+    <span>Auto-hide top bar</span>
+    <input type="checkbox" id="autoHideMasthead">
+  </label>
+
+  <label class="row">
+    <span>Chat width</span>
+    <span class="number">
+      <input type="number" id="chatWidth" step="10">
+      <span class="unit">px</span>
+    </span>
+  </label>
+  <p class="hint" id="chatWidthHint"></p>
+
+  <script src="../src/settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
