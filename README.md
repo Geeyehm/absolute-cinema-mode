@@ -19,7 +19,7 @@ Settings are in the toolbar popup: on/off, auto-enable Cinema mode, auto-hide to
 1. Open `chrome://extensions` and turn on **Developer mode**.
 2. Click **Load unpacked** and select this folder.
 
-**Firefox** (115+)
+**Firefox** (140+)
 1. Open `about:debugging#/runtime/this-firefox`.
 2. Click **Load Temporary Add-on…** and select `manifest.json`.
    Temporary add-ons are removed when Firefox restarts. For a permanent install, the extension has to be signed through addons.mozilla.org.
@@ -35,7 +35,7 @@ YouTube changes its markup often. If the layout breaks after a YouTube update, t
 
 - `pwsh scripts/package.ps1` builds the store upload zip in `dist/` (runtime files only).
 - `powershell -File scripts/make-store-images.ps1` regenerates `store/screenshot-1.png` (1280×800, from `screenshot.png`) and `store/promo-small.png` (440×280).
-- `store/chrome-web-store.md` has the listing text, privacy answers and permission justifications for the Chrome Web Store dashboard.
+- `store/chrome-web-store.md` and `store/firefox-addons.md` have the listing text and privacy answers for each store. The same zip works for both.
 - Bump `version` in `manifest.json` before every upload; the store rejects a version it has already seen.
 
 ## License

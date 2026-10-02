@@ -1,9 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Absolute Cinema Mode for YouTube",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Makes YouTube's Cinema mode fill the window, auto-hide the top bar, and dock live chat to the right.",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -20,14 +22,25 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.youtube.com/*"],
-      "css": ["src/content.css"],
-      "js": ["src/settings.js", "src/content.js"],
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "css": [
+        "src/content.css"
+      ],
+      "js": [
+        "src/settings.js",
+        "src/content.js"
+      ],
       "run_at": "document_start"
     },
     {
-      "matches": ["https://www.youtube.com/live_chat_replay*"],
-      "css": ["src/chat-frame.css"],
+      "matches": [
+        "https://www.youtube.com/live_chat_replay*"
+      ],
+      "css": [
+        "src/chat-frame.css"
+      ],
       "all_frames": true,
       "run_at": "document_start"
     }
@@ -35,7 +48,15 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "youtube-absolute-cinema-mode@extension",
-      "strict_min_version": "115.0"
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
     }
   }
 }
