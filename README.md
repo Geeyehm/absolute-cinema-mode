@@ -1,5 +1,7 @@
 # Absolute Cinema Mode for YouTube
 
+![Absolute Cinema Mode on a YouTube livestream](store/screenshot-1.png)
+
 A browser extension that improves YouTube's Cinema mode (the `t` key / theater button) on regular videos, livestreams and livestream replays:
 
 - The player fills the whole window.
@@ -35,3 +37,7 @@ YouTube changes its markup often. If the layout breaks after a YouTube update, t
 - `powershell -File scripts/make-store-images.ps1` regenerates `store/screenshot-1.png` (1280×800, from `screenshot.png`) and `store/promo-small.png` (440×280).
 - `store/chrome-web-store.md` has the listing text, privacy answers and permission justifications for the Chrome Web Store dashboard.
 - Bump `version` in `manifest.json` before every upload; the store rejects a version it has already seen.
+
+## License
+
+[MIT](LICENSE). Not affiliated with or endorsed by YouTube or Google.
