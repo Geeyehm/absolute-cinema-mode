@@ -4,9 +4,10 @@ const BCM_DEFAULTS = {
   autoTheater: false,
   autoHideMasthead: true,
   chatWidth: 400,
+  chatMode: "default", // "default" (leave YouTube's choice), "top" or "live"
 };
 
-const BCM_CHAT_WIDTH_MIN = 200;
+const BCM_CHAT_WIDTH_MIN = 300;
 const BCM_CHAT_WIDTH_MAX = 800;
 
 function bcmClampChatWidth(value) {

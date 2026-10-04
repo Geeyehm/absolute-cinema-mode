@@ -8,6 +8,7 @@
   let hideTimer = null;
   let settingsLoaded = false;
   let autoTheaterVideoId = null;
+  let resizeQueued = false;
 
   // ---- Layout state ----
 
@@ -28,6 +29,8 @@
     root.classList.toggle('bcm-hide-masthead', settings.autoHideMasthead);
     root.style.setProperty('--bcm-chat-w', `${bcmClampChatWidth(settings.chatWidth)}px`);
 
+    if (chatOpen) attachGrabber();
+    if (!chatOpen) root.classList.remove('bcm-chat-collapsing');
     if (!theater) setMastheadShown(false);
     if (changed) nudgePlayerSize();
   }
@@ -53,6 +56,85 @@
       });
     }
     update();
+  }
+
+  // ---- Chat width grabber ----
+
+  // A handle on the chat's left edge. Dragging resizes the chat live; the width is saved on release
+  // (sync storage limits how often it can be written). Dragging below the minimum width previews the
+  // chat closed, and releasing there closes it with YouTube's own button so "Show chat" brings it back.
+  function attachGrabber() {
+    if (flexy.querySelector(':scope > #bcm-chat-grabber')) return;
+    const grabber = document.getElementById('bcm-chat-grabber') || createGrabber();
+    flexy.append(grabber);
+  }
+
+  function createGrabber() {
+    const grabber = document.createElement('div');
+    grabber.id = 'bcm-chat-grabber';
+    grabber.title = 'Drag to resize chat';
+
+    const onMove = (event) => {
+      const rawWidth = flexy.getBoundingClientRect().right - event.clientX;
+      const collapsing = rawWidth < BCM_CHAT_WIDTH_MIN;
+      if (root.classList.contains('bcm-chat-collapsing') !== collapsing) {
+        root.classList.toggle('bcm-chat-collapsing', collapsing);
+        queuePlayerResize();
+      }
+      if (collapsing) return;
+      const width = bcmClampChatWidth(rawWidth);
+      if (width === settings.chatWidth) return;
+      settings.chatWidth = width;
+      root.style.setProperty('--bcm-chat-w', `${width}px`);
+      queuePlayerResize();
+    };
+
+    const onEnd = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onEnd);
+      window.removeEventListener('pointercancel', onEnd);
+      window.removeEventListener('blur', onEnd);
+      root.classList.remove('bcm-resizing-chat');
+      chrome.storage.sync.set({ chatWidth: settings.chatWidth });
+      if (root.classList.contains('bcm-chat-collapsing')) closeChat();
+    };
+
+    grabber.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      root.classList.add('bcm-resizing-chat');
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onEnd);
+      window.addEventListener('pointercancel', onEnd);
+      window.addEventListener('blur', onEnd);
+    });
+
+    return grabber;
+  }
+
+  // update() clears the collapsed preview once YouTube reports the chat closed. If the button
+  // isn't found or doesn't work, bring the chat back rather than leaving it invisible.
+  function closeChat() {
+    const chatDoc = document.getElementById('chatframe')?.contentDocument;
+    const button =
+      chatDoc?.querySelector('yt-live-chat-header-renderer #close-button button') ||
+      document.querySelector('ytd-live-chat-frame#chat #show-hide-button button');
+    button?.click();
+    setTimeout(() => {
+      if (!root.classList.contains('bcm-chat-collapsing')) return;
+      root.classList.remove('bcm-chat-collapsing');
+      nudgePlayerSize();
+    }, 1000);
+  }
+
+  // One resize event per frame while dragging.
+  function queuePlayerResize() {
+    if (resizeQueued) return;
+    resizeQueued = true;
+    requestAnimationFrame(() => {
+      resizeQueued = false;
+      window.dispatchEvent(new Event('resize'));
+    });
   }
 
   // ---- Auto-enable Cinema mode ----
@@ -95,6 +177,11 @@
     }, HIDE_DELAY_MS);
   }
 
+  // Once the page is scrolled away from the player, keep the top bar shown like a normal sticky header.
+  function updateScrolled() {
+    root.classList.toggle('bcm-scrolled', window.scrollY > 0);
+  }
+
   function setUpMasthead() {
     if (!document.getElementById('bcm-hot-zone')) {
       const hotZone = document.createElement('div');
@@ -112,6 +199,8 @@
     masthead.addEventListener('focusout', scheduleMastheadHide);
   }
 
+  window.addEventListener('scroll', updateScrolled, { passive: true });
+
   // ---- Settings ----
 
   chrome.storage.onChanged.addListener((changes, area) => {
@@ -127,6 +216,7 @@
   // ---- Boot ----
 
   function onPageChange() {
+    updateScrolled();
     attachFlexy();
     setUpMasthead();
     maybeAutoTheater();

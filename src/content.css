@@ -4,6 +4,7 @@
  *   .bcm-chat-open      - live chat (or replay chat) is present and expanded
  *   .bcm-hide-masthead  - auto-hide top bar setting is on
  *   .bcm-masthead-shown - top bar temporarily revealed by hover/focus
+ *   .bcm-scrolled       - page is scrolled down; the top bar stays shown
  * --bcm-chat-w is set on <html> from the chat width setting.
  */
 
@@ -28,6 +29,15 @@ html.bcm-theater ytd-watch-flexy #full-bleed-container #movie_player {
   width: 100% !important;
   height: 100% !important;
   max-height: none !important;
+}
+
+/* Before a stream starts, the player shows the thumbnail with background-size: cover, which
+   crops it in a player that isn't 16:9. Letterbox it like the video instead. */
+html.bcm-theater ytd-watch-flexy #movie_player .ytp-offline-slate-background {
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-color: #000 !important;
 }
 
 /* YouTube reserves this flex slot for chat beside the player. Size it to our chat width,
@@ -74,6 +84,66 @@ html.bcm-theater.bcm-chat-open ytd-watch-flexy ytd-live-chat-frame#chat #chatfra
   border-radius: 0 !important;
 }
 
+/* Drag handle centred on the chat's left border (added by content.js). */
+#bcm-chat-grabber {
+  display: none;
+}
+
+html.bcm-theater.bcm-chat-open ytd-watch-flexy > #bcm-chat-grabber {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: var(--bcm-chat-w);
+  width: 9px;
+  height: calc(100vh - var(--bcm-top-offset, 0px));
+  transform: translateX(50%);
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 11;
+}
+
+#bcm-chat-grabber::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 3px;
+  background: var(--yt-spec-call-to-action, #3ea6ff);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+#bcm-chat-grabber:hover::after,
+html.bcm-resizing-chat #bcm-chat-grabber::after {
+  opacity: 1;
+}
+
+/* While dragging, keep the chat iframe from swallowing the pointer and the page from selecting text. */
+html.bcm-resizing-chat,
+html.bcm-resizing-chat * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+html.bcm-resizing-chat ytd-live-chat-frame#chat {
+  pointer-events: none !important;
+}
+
+/* Dragged below the minimum width: preview the chat closed until release. */
+html.bcm-theater.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy #panels-full-bleed-container {
+  width: 0 !important;
+}
+
+html.bcm-theater.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy #chat-container {
+  visibility: hidden !important;
+}
+
+html.bcm-theater.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy > #bcm-chat-grabber {
+  right: 0;
+  transform: none;
+}
+
 /* YouTube pads the content below the player to make room for its own docked chat.
    Ours scrolls away with the player, so give that space back. */
 html.bcm-theater ytd-watch-flexy #columns {
@@ -99,7 +169,8 @@ html.bcm-theater.bcm-hide-masthead #masthead-container {
   transition: transform 0.15s ease-out;
 }
 
-html.bcm-theater.bcm-hide-masthead.bcm-masthead-shown #masthead-container {
+html.bcm-theater.bcm-hide-masthead.bcm-masthead-shown #masthead-container,
+html.bcm-theater.bcm-hide-masthead.bcm-scrolled #masthead-container {
   transform: none !important;
   background: var(--yt-spec-base-background, #0f0f0f);
   z-index: 2147483646 !important;
@@ -120,6 +191,7 @@ html.bcm-theater.bcm-hide-masthead #bcm-hot-zone {
   z-index: 2147483647;
 }
 
-html.bcm-theater.bcm-hide-masthead.bcm-masthead-shown #bcm-hot-zone {
+html.bcm-theater.bcm-hide-masthead.bcm-masthead-shown #bcm-hot-zone,
+html.bcm-theater.bcm-hide-masthead.bcm-scrolled #bcm-hot-zone {
   display: none;
 }

@@ -1,6 +1,6 @@
 # Firefox Add-ons (AMO) submission
 
-Submit at the AMO Developer Hub: **Submit a New Add-on**. Upload file: `dist/absolute-cinema-mode-1.0.1.zip` (build with `pwsh scripts/package.ps1`). It's the same package as Chrome; Chrome ignores the Firefox-only manifest keys.
+Submit at the AMO Developer Hub: **Submit a New Add-on**. Upload file: `dist/absolute-cinema-mode-1.0.2.zip` (build with `pwsh scripts/package.ps1`). It's the same package as Chrome; Chrome ignores the Firefox-only manifest keys.
 
 ## 1. How to distribute
 
@@ -32,9 +32,10 @@ Make YouTube's Cinema mode actually cinematic.
 
 Press the Cinema mode button (or the T key) and Absolute Cinema Mode takes over the whole window:
 
-• The video fills the window, edge to edge.
-• The YouTube top bar gets out of the way, and slides back when you move your mouse to the top of the screen.
-• Live chat and chat replay sit neatly to the right of the video, full height, at the width you choose.
+• The video fills the window, edge to edge. Upcoming livestreams show their full thumbnail too.
+• The YouTube top bar gets out of the way, and slides back when you move your mouse to the top of the screen. Scroll down and it stays put, like a normal header.
+• Live chat and chat replay sit neatly to the right of the video, full height.
+• Drag the chat's left edge to make it wider or narrower. Drag it all the way and the chat closes.
 • Close the chat and the video takes the full width.
 • Scroll down any time for the description, comments and recommendations.
 
@@ -44,7 +45,8 @@ Settings (click the toolbar icon):
 • Turn the extension on or off
 • Auto-enable Cinema mode on every video
 • Auto-hide the top bar
-• Chat width in pixels (200–800, default 400)
+• Chat view: always open Top chat or Live chat (or leave it to YouTube)
+• Chat width in pixels (300–800, default 400)
 
 No accounts, no tracking, no data collection. Your settings are stored in your browser.
 

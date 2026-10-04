@@ -45,7 +45,8 @@ h1 {
   gap: 4px;
 }
 
-input[type="number"] {
+input[type="number"],
+select {
   width: 64px;
   padding: 3px 6px;
   border: 1px solid var(--border);
@@ -53,6 +54,15 @@ input[type="number"] {
   background: transparent;
   color: inherit;
   font: inherit;
+}
+
+select {
+  width: auto;
+  padding: 3px 4px;
+}
+
+select option {
+  background: var(--bg);
 }
 
 .unit,

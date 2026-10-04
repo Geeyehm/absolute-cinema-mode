@@ -1,6 +1,7 @@
 const enabledInput = document.getElementById('enabled');
 const autoTheaterInput = document.getElementById('autoTheater');
 const mastheadInput = document.getElementById('autoHideMasthead');
+const chatModeInput = document.getElementById('chatMode');
 const widthInput = document.getElementById('chatWidth');
 
 widthInput.min = BCM_CHAT_WIDTH_MIN;
@@ -12,12 +13,14 @@ bcmLoadSettings().then((settings) => {
   enabledInput.checked = settings.enabled;
   autoTheaterInput.checked = settings.autoTheater;
   mastheadInput.checked = settings.autoHideMasthead;
+  chatModeInput.value = settings.chatMode;
   widthInput.value = bcmClampChatWidth(settings.chatWidth);
 });
 
 enabledInput.addEventListener('change', () => chrome.storage.sync.set({ enabled: enabledInput.checked }));
 autoTheaterInput.addEventListener('change', () => chrome.storage.sync.set({ autoTheater: autoTheaterInput.checked }));
 mastheadInput.addEventListener('change', () => chrome.storage.sync.set({ autoHideMasthead: mastheadInput.checked }));
+chatModeInput.addEventListener('change', () => chrome.storage.sync.set({ chatMode: chatModeInput.value }));
 
 // Apply while typing or using the arrows; clamp the displayed value once the field is left.
 widthInput.addEventListener('input', () => {
@@ -28,4 +31,11 @@ widthInput.addEventListener('change', () => {
   const clamped = bcmClampChatWidth(widthInput.value);
   widthInput.value = clamped;
   chrome.storage.sync.set({ chatWidth: clamped });
+});
+
+// Keep the field in sync when the width is dragged on the page while the popup is open.
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes.chatWidth && document.activeElement !== widthInput) {
+    widthInput.value = bcmClampChatWidth(changes.chatWidth.newValue);
+  }
 });
