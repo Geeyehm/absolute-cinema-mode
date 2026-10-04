@@ -1,6 +1,6 @@
 # Chrome Web Store submission
 
-Everything to paste into the developer dashboard, by tab. Upload file: `dist/absolute-cinema-mode-1.0.2.zip` (build with `pwsh scripts/package.ps1`).
+Everything to paste into the developer dashboard, by tab. Upload file: `dist/absolute-cinema-mode-1.0.3.zip` (build with `pwsh scripts/package.ps1`).
 
 ## Package tab
 
@@ -31,6 +31,7 @@ Settings (click the toolbar icon):
 • Turn the extension on or off
 • Auto-enable Cinema mode on every video
 • Auto-hide the top bar
+• Twitch mode: on livestreams and replays, chat stays pinned to the side of the window, Twitch-style. The regular view keeps the title and buttons under the video, and Cinema mode becomes a no-scroll, video-and-chat-only view
 • Chat view: always open Top chat or Live chat (or leave it to YouTube)
 • Chat width in pixels (300–800, default 400)
 

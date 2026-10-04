@@ -1,6 +1,7 @@
 const enabledInput = document.getElementById('enabled');
 const autoTheaterInput = document.getElementById('autoTheater');
 const mastheadInput = document.getElementById('autoHideMasthead');
+const twitchModeInput = document.getElementById('twitchMode');
 const chatModeInput = document.getElementById('chatMode');
 const widthInput = document.getElementById('chatWidth');
 
@@ -13,6 +14,7 @@ bcmLoadSettings().then((settings) => {
   enabledInput.checked = settings.enabled;
   autoTheaterInput.checked = settings.autoTheater;
   mastheadInput.checked = settings.autoHideMasthead;
+  twitchModeInput.checked = settings.twitchMode;
   chatModeInput.value = settings.chatMode;
   widthInput.value = bcmClampChatWidth(settings.chatWidth);
 });
@@ -20,6 +22,7 @@ bcmLoadSettings().then((settings) => {
 enabledInput.addEventListener('change', () => chrome.storage.sync.set({ enabled: enabledInput.checked }));
 autoTheaterInput.addEventListener('change', () => chrome.storage.sync.set({ autoTheater: autoTheaterInput.checked }));
 mastheadInput.addEventListener('change', () => chrome.storage.sync.set({ autoHideMasthead: mastheadInput.checked }));
+twitchModeInput.addEventListener('change', () => chrome.storage.sync.set({ twitchMode: twitchModeInput.checked }));
 chatModeInput.addEventListener('change', () => chrome.storage.sync.set({ chatMode: chatModeInput.value }));
 
 // Apply while typing or using the arrows; clamp the displayed value once the field is left.

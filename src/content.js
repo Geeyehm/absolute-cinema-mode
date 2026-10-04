@@ -9,6 +9,7 @@
   let settingsLoaded = false;
   let autoTheaterVideoId = null;
   let resizeQueued = false;
+  let infoObserver = null;
 
   // ---- Layout state ----
 
@@ -17,21 +18,36 @@
   }
 
   function update() {
-    const theater = settings.enabled && isWatchPage() && flexy.hasAttribute('theater');
-    const chatOpen = theater && flexy.hasAttribute('live-chat-present-and-expanded');
+    const watch = settings.enabled && isWatchPage();
+    const theater = watch && flexy.hasAttribute('theater');
+    // Twitch mode only applies to livestreams and replays, which YouTube marks with should-stamp-chat
+    // (still set while the chat is closed).
+    const twitch = watch && settings.twitchMode && flexy.hasAttribute('should-stamp-chat');
+    const chatOpen = (theater || twitch) && flexy.hasAttribute('live-chat-present-and-expanded');
 
+    const enteringTwitchTheater =
+      twitch && theater && !(root.classList.contains('bcm-twitch') && root.classList.contains('bcm-theater'));
     const changed =
       root.classList.contains('bcm-theater') !== theater ||
+      root.classList.contains('bcm-twitch') !== twitch ||
       root.classList.contains('bcm-chat-open') !== chatOpen;
 
     root.classList.toggle('bcm-theater', theater);
+    root.classList.toggle('bcm-twitch', twitch);
     root.classList.toggle('bcm-chat-open', chatOpen);
-    root.classList.toggle('bcm-hide-masthead', settings.autoHideMasthead);
+    // Twitch mode's Cinema view never shows the top bar, whatever the auto-hide setting.
+    root.classList.toggle('bcm-hide-masthead', settings.autoHideMasthead || (twitch && theater));
     root.style.setProperty('--bcm-chat-w', `${bcmClampChatWidth(settings.chatWidth)}px`);
 
     if (chatOpen) attachGrabber();
     if (!chatOpen) root.classList.remove('bcm-chat-collapsing');
-    if (!theater) setMastheadShown(false);
+    if (twitch) {
+      measureInfo();
+      if (!chatOpen) attachShowChatButton();
+    }
+    // Twitch mode's Cinema view doesn't scroll; start it at the top.
+    if (enteringTwitchTheater) window.scrollTo(0, 0);
+    if (!theater || (twitch && theater)) setMastheadShown(false);
     if (changed) nudgePlayerSize();
   }
 
@@ -52,10 +68,52 @@
       });
       flexyObserver.observe(flexy, {
         attributes: true,
-        attributeFilter: ['theater', 'live-chat-present-and-expanded', 'hidden'],
+        attributeFilter: ['theater', 'live-chat-present-and-expanded', 'should-stamp-chat', 'hidden'],
       });
     }
     update();
+  }
+
+  // ---- Twitch mode ----
+
+  // The regular view sizes the player so the title and the channel/buttons row fit below it on the
+  // first screen. Their height changes with the title length and window width, so measure it.
+  function measureInfo() {
+    const metadata = flexy.querySelector('ytd-watch-metadata');
+    const title = metadata?.querySelector('#title');
+    const row = metadata?.querySelector('#top-row');
+    if (!title || !row) return;
+    infoObserver ??= new ResizeObserver(() => {
+      if (root.classList.contains('bcm-twitch')) measureInfo();
+    });
+    infoObserver.observe(title);
+    infoObserver.observe(row);
+
+    const height = Math.ceil(row.getBoundingClientRect().bottom - title.getBoundingClientRect().top);
+    if (height <= 0) return;
+    const value = `${height}px`;
+    if (root.style.getPropertyValue('--bcm-info-h') === value) return;
+    root.style.setProperty('--bcm-info-h', value);
+    nudgePlayerSize();
+  }
+
+  // With the chat closed, YouTube's own Show chat button ends up out of reach (below the comments, or
+  // hidden in Cinema mode), so put one on the corner of the video like Twitch does. It presses
+  // YouTube's button, and borrows its label so it matches the page language.
+  function attachShowChatButton() {
+    let button = document.getElementById('bcm-show-chat');
+    if (!button) {
+      button = document.createElement('button');
+      button.id = 'bcm-show-chat';
+      button.type = 'button';
+      button.addEventListener('click', () => youTubeShowChatButton()?.click());
+    }
+    button.textContent = youTubeShowChatButton()?.textContent.trim() || 'Show chat';
+    if (button.parentElement !== flexy) flexy.append(button);
+  }
+
+  function youTubeShowChatButton() {
+    return flexy.querySelector('ytd-live-chat-frame#chat #show-hide-button button');
   }
 
   // ---- Chat width grabber ----
@@ -75,7 +133,8 @@
     grabber.title = 'Drag to resize chat';
 
     const onMove = (event) => {
-      const rawWidth = flexy.getBoundingClientRect().right - event.clientX;
+      const chatRight = (flexy.querySelector('#chat-container') || flexy).getBoundingClientRect().right;
+      const rawWidth = chatRight - event.clientX;
       const collapsing = rawWidth < BCM_CHAT_WIDTH_MIN;
       if (root.classList.contains('bcm-chat-collapsing') !== collapsing) {
         root.classList.toggle('bcm-chat-collapsing', collapsing);
@@ -164,6 +223,7 @@
 
   function setMastheadShown(shown) {
     clearTimeout(hideTimer);
+    if (root.classList.contains('bcm-twitch') && root.classList.contains('bcm-theater')) shown = false;
     root.classList.toggle('bcm-masthead-shown', shown);
   }
 

@@ -1,11 +1,13 @@
 /*
  * All rules are gated on classes that content.js sets on <html>:
  *   .bcm-theater        - extension enabled and ytd-watch-flexy has [theater]
- *   .bcm-chat-open      - live chat (or replay chat) is present and expanded
+ *   .bcm-twitch         - Twitch mode is on and the page has live chat or a chat replay
+ *   .bcm-chat-open      - live chat (or replay chat) is present and expanded, in Cinema or Twitch mode
  *   .bcm-hide-masthead  - auto-hide top bar setting is on
  *   .bcm-masthead-shown - top bar temporarily revealed by hover/focus
  *   .bcm-scrolled       - page is scrolled down; the top bar stays shown
- * --bcm-chat-w is set on <html> from the chat width setting.
+ * --bcm-chat-w is set on <html> from the chat width setting; --bcm-info-h is the height of the title
+ * and channel/buttons row (Twitch mode).
  */
 
 /* ---- Player fills the first screen ---- */
@@ -89,7 +91,7 @@ html.bcm-theater.bcm-chat-open ytd-watch-flexy ytd-live-chat-frame#chat #chatfra
   display: none;
 }
 
-html.bcm-theater.bcm-chat-open ytd-watch-flexy > #bcm-chat-grabber {
+html.bcm-chat-open ytd-watch-flexy > #bcm-chat-grabber {
   display: block;
   position: absolute;
   top: 0;
@@ -135,11 +137,11 @@ html.bcm-theater.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy #panels-full-
   width: 0 !important;
 }
 
-html.bcm-theater.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy #chat-container {
+html.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy #chat-container {
   visibility: hidden !important;
 }
 
-html.bcm-theater.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy > #bcm-chat-grabber {
+html.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy > #bcm-chat-grabber {
   right: 0;
   transform: none;
 }
@@ -148,6 +150,120 @@ html.bcm-theater.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy > #bcm-chat-g
    Ours scrolls away with the player, so give that space back. */
 html.bcm-theater ytd-watch-flexy #columns {
   padding-right: 0 !important;
+}
+
+/* ---- Twitch mode (livestreams and replays) ---- */
+
+html.bcm-twitch ytd-watch-flexy {
+  position: relative;
+}
+
+/* Chat sits flush against the edges: no rounded corners and only the divider on its left. */
+html.bcm-twitch.bcm-chat-open ytd-watch-flexy ytd-live-chat-frame#chat {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border-top-width: 0 !important;
+  border-right-width: 0 !important;
+  border-bottom-width: 0 !important;
+}
+
+html.bcm-twitch.bcm-chat-open ytd-watch-flexy ytd-live-chat-frame#chat #chatframe {
+  border-radius: 0 !important;
+}
+
+/* Regular view: the top bar stays, chat is pinned to the right of the window below it, and the
+   page scrolls beside the chat. Recommendations drop below the comments. */
+html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #columns {
+  flex-direction: column !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html.bcm-twitch.bcm-chat-open:not(.bcm-theater):not(.bcm-chat-collapsing) ytd-watch-flexy #columns {
+  padding-right: var(--bcm-chat-w) !important;
+}
+
+html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #primary,
+html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #secondary {
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #below,
+html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #secondary-inner {
+  padding: 0 16px !important;
+}
+
+/* The player fills the space left above the title and channel/buttons row (24px is the gap above
+   the title plus a little breathing room below the buttons). */
+html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #player-container-outer {
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #player-container-inner {
+  padding-top: 0 !important;
+  height: calc(100vh - var(--ytd-masthead-height, 56px) - var(--bcm-info-h, 93px) - 24px) !important;
+  min-height: 240px;
+}
+
+html.bcm-twitch.bcm-chat-open:not(.bcm-theater) ytd-watch-flexy #chat-container {
+  position: fixed !important;
+  top: var(--ytd-masthead-height, 56px) !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: var(--bcm-chat-w) !important;
+  height: auto !important;
+  margin: 0 !important;
+  z-index: 10;
+}
+
+html.bcm-twitch.bcm-chat-open:not(.bcm-theater) ytd-watch-flexy > #bcm-chat-grabber {
+  position: fixed;
+  top: var(--ytd-masthead-height, 56px);
+  bottom: 0;
+  height: auto;
+}
+
+/* Cinema view: no top bar and no scrolling, just the video and chat. */
+html.bcm-twitch.bcm-theater,
+html.bcm-twitch.bcm-theater body {
+  overflow: hidden !important;
+}
+
+html.bcm-twitch.bcm-theater #bcm-hot-zone {
+  display: none !important;
+}
+
+/* Shown on the video's corner while the chat is closed (added by content.js). */
+#bcm-show-chat {
+  display: none;
+}
+
+html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat {
+  display: block;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 11;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font: 500 14px/20px Roboto, Arial, sans-serif;
+  cursor: pointer;
+}
+
+html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat:hover {
+  background: rgba(0, 0, 0, 0.8);
 }
 
 /* ---- Auto-hiding top bar ---- */

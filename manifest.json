@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Absolute Cinema Mode for YouTube",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Makes YouTube's Cinema mode fill the window, auto-hide the top bar, and dock live chat to the right.",
   "permissions": [
     "storage"

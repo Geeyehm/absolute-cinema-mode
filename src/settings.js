@@ -3,6 +3,7 @@ const BCM_DEFAULTS = {
   enabled: true,
   autoTheater: false,
   autoHideMasthead: true,
+  twitchMode: false,
   chatWidth: 400,
   chatMode: "default", // "default" (leave YouTube's choice), "top" or "live"
 };

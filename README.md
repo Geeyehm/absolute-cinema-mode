@@ -9,9 +9,11 @@ A browser extension that improves YouTube's Cinema mode (the `t` key / theater b
 - Live chat and chat replay dock to the right of the video at a width you choose (default 400px). Closing chat gives the video the full width.
 - You can still scroll down to the description, comments and recommendations.
 
-Settings are in the toolbar popup: on/off, auto-enable Cinema mode, auto-hide top bar, chat view (Top chat or Live chat), and chat width (300–800px). Changes apply immediately. You can also drag the chat's left edge to resize it; the new width is saved to the same setting. Dragging it narrower than 300px closes the chat, and YouTube's Show chat button brings it back.
+Settings are in the toolbar popup: on/off, auto-enable Cinema mode, auto-hide top bar, Twitch mode, chat view (Top chat or Live chat), and chat width (300–800px). Changes apply immediately. You can also drag the chat's left edge to resize it; the new width is saved to the same setting. Dragging it narrower than 300px closes the chat, and YouTube's Show chat button brings it back.
 
 **Auto-enable Cinema mode** (off by default) switches each video into Cinema mode when it opens. If you turn Cinema mode off on a video, it stays off for that video. With the setting off, YouTube's normal behavior applies.
+
+**Twitch mode** (off by default, livestreams and replays only) pins the chat to the right side of the window in both views. In the regular view the top bar stays, the video is sized so the title, channel and like/share/save buttons fit below it, and you can scroll to the description, comments and recommendations while the chat stays put. In Cinema mode the top bar never shows and the page doesn't scroll. With the chat closed, a Show chat button sits on the video's top-right corner.
 
 **Chat view** picks Top chat or Live chat (all messages) whenever a live chat or chat replay loads. "YouTube default" leaves YouTube's choice alone. You can still switch in the chat's own menu.
 
