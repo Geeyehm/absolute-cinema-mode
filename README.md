@@ -13,7 +13,7 @@ Settings are in the toolbar popup: on/off, auto-enable Cinema mode, auto-hide to
 
 **Auto-enable Cinema mode** (off by default) switches each video into Cinema mode when it opens. If you turn Cinema mode off on a video, it stays off for that video. With the setting off, YouTube's normal behavior applies.
 
-**Twitch mode** (off by default, livestreams and replays only) pins the chat to the right side of the window in both views. In the regular view the top bar stays, the video is sized so the title, channel and like/share/save buttons fit below it, and you can scroll to the description, comments and recommendations while the chat stays put. In Cinema mode the top bar never shows and the page doesn't scroll. With the chat closed, a Show chat button sits on the video's top-right corner.
+**Twitch mode** (off by default, livestreams and replays only) pins the chat to the right side of the window in both views. In the regular view the top bar stays, the video is sized so the title, channel and like/share/save buttons fit below it, and you can scroll to the description, comments and recommendations while the chat stays put. In Cinema mode the top bar never shows and the page doesn't scroll. With the chat closed, Twitch's open-chat arrow sits on the video's top-right corner to bring it back.
 
 **Chat view** picks Top chat or Live chat (all messages) whenever a live chat or chat replay loads. "YouTube default" leaves YouTube's choice alone. You can still switch in the chat's own menu.
 
@@ -41,6 +41,7 @@ YouTube changes its markup often. If the layout breaks after a YouTube update, t
 - `powershell -File scripts/make-store-images.ps1` regenerates `store/screenshot-1.png` (1280×800, from `screenshot.png`) and `store/promo-small.png` (440×280).
 - `store/chrome-web-store.md` and `store/firefox-addons.md` have the listing text and privacy answers for each store. The same zip works for both.
 - Bump `version` in `manifest.json` before every upload; the store rejects a version it has already seen.
+- Add the release to `changelog/changelog.html` (newest first, one `<section data-version>` per version). Users open it from "What's new" in the settings popup.
 
 ## License
 

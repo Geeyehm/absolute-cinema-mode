@@ -248,22 +248,65 @@ html.bcm-twitch.bcm-theater #bcm-hot-zone {
 }
 
 html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: absolute;
   top: 12px;
   right: 12px;
   z-index: 11;
-  padding: 8px 14px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border: 0;
-  border-radius: 18px;
-  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  background: transparent;
   color: #fff;
-  font: 500 14px/20px Roboto, Arial, sans-serif;
   cursor: pointer;
+  transition: opacity 0.25s, background-color 0.1s;
 }
 
-html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat:hover {
-  background: rgba(0, 0, 0, 0.8);
+/* Fade out with the player controls (YouTube adds ytp-autohide to the player when it hides them).
+   The button sits over the player rather than inside it, so moving onto it counts as leaving the
+   player; keep it while hovered or focused. */
+html.bcm-twitch ytd-watch-flexy:has(#movie_player.ytp-autohide) > #bcm-show-chat:not(:hover):not(:focus-visible) {
+  opacity: 0;
+}
+
+/* No background until hovered, like Twitch; the shadow keeps the arrow visible on bright video. */
+#bcm-show-chat svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+}
+
+html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat:hover,
+html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat:focus-visible {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Tooltip below the button, right-aligned so it stays inside the window. */
+#bcm-show-chat::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  padding: 5px 9px;
+  border-radius: 4px;
+  background: rgba(28, 28, 28, 0.9);
+  color: #fff;
+  font: 500 12px/16px Roboto, Arial, sans-serif;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+
+#bcm-show-chat:hover::after,
+#bcm-show-chat:focus-visible::after {
+  opacity: 1;
+  transition-delay: 0.3s;
 }
 
 /* ---- Auto-hiding top bar ---- */

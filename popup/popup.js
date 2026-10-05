@@ -42,3 +42,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
     widthInput.value = bcmClampChatWidth(changes.chatWidth.newValue);
   }
 });
+
+document.getElementById('version').textContent = `Version ${chrome.runtime.getManifest().version}`;
+document.getElementById('changelog').addEventListener('click', (event) => {
+  event.preventDefault();
+  chrome.tabs.create({ url: chrome.runtime.getURL('changelog/changelog.html') });
+  window.close();
+});

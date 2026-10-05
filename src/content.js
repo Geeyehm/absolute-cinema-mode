@@ -98,18 +98,42 @@
   }
 
   // With the chat closed, YouTube's own Show chat button ends up out of reach (below the comments, or
-  // hidden in Cinema mode), so put one on the corner of the video like Twitch does. It presses
-  // YouTube's button, and borrows its label so it matches the page language.
+  // hidden in Cinema mode), so put Twitch's expand-chat icon on the corner of the video. It presses
+  // YouTube's button, and borrows its label for the tooltip so it matches the page language.
   function attachShowChatButton() {
     let button = document.getElementById('bcm-show-chat');
     if (!button) {
       button = document.createElement('button');
       button.id = 'bcm-show-chat';
       button.type = 'button';
+      button.append(expandChatIcon());
       button.addEventListener('click', () => youTubeShowChatButton()?.click());
     }
-    button.textContent = youTubeShowChatButton()?.textContent.trim() || 'Show chat';
+    const label = youTubeShowChatButton()?.textContent.trim() || 'Show chat';
+    button.dataset.tooltip = label;
+    button.setAttribute('aria-label', label);
     if (button.parentElement !== flexy) flexy.append(button);
+  }
+
+  // Built with DOM calls rather than innerHTML, which YouTube's Trusted Types policy blocks.
+  function expandChatIcon() {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('width', '24');
+    svg.setAttribute('height', '24');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    const paths = [
+      'M21.414 5h-2v14h2V5Z',
+      'M8.707 5.293 2 12l6.707 6.707 1.414-1.414L5.828 13h11.586v-2H5.828l4.293-4.293-1.414-1.414Z',
+    ];
+    for (const d of paths) {
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill-rule', 'evenodd');
+      svg.append(path);
+    }
+    return svg;
   }
 
   function youTubeShowChatButton() {

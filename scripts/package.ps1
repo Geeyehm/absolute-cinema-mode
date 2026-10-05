@@ -13,6 +13,7 @@ $zipPath = Join-Path $outDir "absolute-cinema-mode-$($manifest.version).zip"
 $files = @('manifest.json') +
   (Get-ChildItem (Join-Path $root 'src') -File | ForEach-Object { "src/$($_.Name)" }) +
   (Get-ChildItem (Join-Path $root 'popup') -File | ForEach-Object { "popup/$($_.Name)" }) +
+  (Get-ChildItem (Join-Path $root 'changelog') -File | ForEach-Object { "changelog/$($_.Name)" }) +
   (Get-ChildItem (Join-Path $root 'icons') -Filter 'icon-*.png' | ForEach-Object { "icons/$($_.Name)" })
 
 New-Item -ItemType Directory -Force $outDir | Out-Null
