@@ -1,1 +1,4 @@
 dist/
+store/
+screenshot.png
+scripts/make-store-images.ps1
