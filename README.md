@@ -4,14 +4,15 @@ A browser extension that improves YouTube's Cinema mode (the `t` key / theater b
 
 - The player fills the whole window.
 - The top bar hides, and slides back when the mouse touches the top edge (it stays open while you're typing in search). Once you scroll down the page, it stays visible until you scroll back to the top.
-- Live chat and chat replay dock to the right of the video at a width you choose (default 400px). Closing chat gives the video the full width.
+- Live chat and chat replay dock to the right of the video at a width you choose (default 400px). A Twitch-style button on the video's top-right corner hides and shows the chat; hidden chat stays loaded, so it comes back instantly, and the video takes the full width meanwhile.
+- Switching between Cinema and regular mode doesn't reload the chat (in browsers with `moveBefore`, such as Chrome 133+).
 - You can still scroll down to the description, comments and recommendations.
 
-Settings are in the toolbar popup: on/off, auto-enable Cinema mode, auto-hide top bar, Twitch mode, chat view (Top chat or Live chat), and chat width (300–800px). Changes apply immediately. You can also drag the chat's left edge to resize it; the new width is saved to the same setting. Dragging it narrower than 300px closes the chat, and YouTube's Show chat button brings it back.
+Settings are in the toolbar popup: on/off, auto-enable Cinema mode, auto-hide top bar, Twitch mode, chat view (Top chat or Live chat), and chat width (300–800px). Changes apply immediately. You can also drag the chat's left edge to resize it; the new width is saved to the same setting. Dragging it narrower than 300px hides the chat, and the button on the video brings it back.
 
 **Auto-enable Cinema mode** (off by default) switches each video into Cinema mode when it opens. If you turn Cinema mode off on a video, it stays off for that video. With the setting off, YouTube's normal behavior applies.
 
-**Twitch mode** (off by default, livestreams and replays only) pins the chat to the right side of the window in both views. In the regular view the top bar stays, the video is sized so the title, channel and like/share/save buttons fit below it, and you can scroll to the description, comments and recommendations while the chat stays put. In Cinema mode the top bar never shows and the page doesn't scroll. With the chat closed, Twitch's open-chat arrow sits on the video's top-right corner to bring it back.
+**Twitch mode** (off by default, livestreams and replays only) pins the chat to the right side of the window in both views. In the regular view the top bar stays, the video is sized so the title, channel and like/share/save buttons fit below it, and you can scroll to the description, comments and recommendations while the chat stays put. In Cinema mode the top bar never shows and the page doesn't scroll. The chat button on the video's corner works here too, in both views.
 
 **Chat view** picks Top chat or Live chat (all messages) whenever a live chat or chat replay loads. "YouTube default" leaves YouTube's choice alone. You can still switch in the chat's own menu.
 
@@ -31,7 +32,9 @@ Settings are in the toolbar popup: on/off, auto-enable Cinema mode, auto-hide to
 
 `src/content.js` watches `<ytd-watch-flexy>` for the `theater` and `live-chat-present-and-expanded` attributes YouTube already sets, and mirrors them as classes on `<html>` (`bcm-theater`, `bcm-chat-open`). All layout changes in `src/content.css` are gated on those classes, so nothing changes outside Cinema mode.
 
-YouTube changes its markup often. If the layout breaks after a YouTube update, the selectors to check are all in `src/content.css`: `#full-bleed-container`, `#panels-full-bleed-container`, `#chat-container`, `ytd-live-chat-frame#chat`, `#columns`, and `#masthead-container`. `src/chat-frame.css` runs inside the chat replay iframe itself, and `src/chat-frame.js` runs inside both chat iframes and clicks the first (Top) or second (Live) item of the chat's `#view-selector` menu.
+YouTube changes its markup often. If the layout breaks after a YouTube update, the selectors to check are all in `src/content.css`: `#full-bleed-container`, `#panels-full-bleed-container`, `#chat-container`, `ytd-live-chat-frame#chat`, `#columns`, and `#masthead-container`. `src/chat-frame.css` runs inside the chat replay iframe itself. `src/chat-frame.js` and `src/chat-messages.css` run inside both chat iframes: the script clicks the first (Top) or second (Live) item of the chat's `#view-selector` menu, and the CSS widens messages and hides the chat's close button in Cinema/Twitch mode.
+
+`src/keep-chat.js` runs in the page itself (`world: MAIN`). YouTube moves `#chat-container` between `#columns` and `#secondary-inner` when Cinema mode changes, which reloads the chat iframe; the script makes that one move with `moveBefore` instead. YouTube's web components polyfill replaces `appendChild`/`insertBefore` while the page loads, so the script wraps them again on `load` and `yt-navigate-finish`.
 
 ## Release
 

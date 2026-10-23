@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Absolute Cinema Mode for YouTube",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Makes YouTube's Cinema mode fill the window, auto-hide the top bar, and dock live chat to the right.",
   "permissions": [
     "storage"
@@ -36,6 +36,16 @@
     },
     {
       "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "src/keep-chat.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
         "https://www.youtube.com/live_chat_replay*"
       ],
       "css": [
@@ -47,6 +57,9 @@
     {
       "matches": [
         "https://www.youtube.com/live_chat*"
+      ],
+      "css": [
+        "src/chat-messages.css"
       ],
       "js": [
         "src/settings.js",

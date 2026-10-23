@@ -10,20 +10,36 @@
   let autoTheaterVideoId = null;
   let resizeQueued = false;
   let infoObserver = null;
+  let chatFrameObserver = null;
+  // Video whose chat is hidden rather than closed (see hideChat), or null.
+  let chatHiddenFor = null;
 
   // ---- Layout state ----
 
   function isWatchPage() {
-    return location.pathname === '/watch' && flexy && !flexy.hidden;
+    // A channel's /@name/live and /live/<id> links show the watch page without redirecting to /watch.
+    return /^\/(watch$|live\/|@[^/]+\/live$)/.test(location.pathname) && flexy && !flexy.hidden;
   }
 
   function update() {
+    // Turns on keep-chat.js, which runs in the page and can't read the settings.
+    root.classList.toggle('bcm-enabled', settings.enabled);
     const watch = settings.enabled && isWatchPage();
     const theater = watch && flexy.hasAttribute('theater');
-    // Twitch mode only applies to livestreams and replays, which YouTube marks with should-stamp-chat
-    // (still set while the chat is closed).
-    const twitch = watch && settings.twitchMode && flexy.hasAttribute('should-stamp-chat');
-    const chatOpen = (theater || twitch) && flexy.hasAttribute('live-chat-present-and-expanded');
+    const chat = watch && hasChat();
+    const twitch = chat && settings.twitchMode;
+    const expanded = watch && flexy.hasAttribute('live-chat-present-and-expanded');
+    if (chatHiddenFor !== null && (!expanded || chatHiddenFor !== flexy.getAttribute('video-id'))) {
+      chatHiddenFor = null;
+    }
+    if (chatHiddenFor !== null && !theater && !twitch) {
+      // Left Cinema/Twitch mode with the chat hidden: close it properly, so YouTube's own view of the
+      // page has it closed too.
+      chatHiddenFor = null;
+      closeChat();
+    }
+    const chatOpen = (theater || twitch) && expanded && chatHiddenFor === null;
+    const chatClosed = chat && (theater || twitch) && !chatOpen;
 
     const enteringTwitchTheater =
       twitch && theater && !(root.classList.contains('bcm-twitch') && root.classList.contains('bcm-theater'));
@@ -35,20 +51,30 @@
     root.classList.toggle('bcm-theater', theater);
     root.classList.toggle('bcm-twitch', twitch);
     root.classList.toggle('bcm-chat-open', chatOpen);
+    root.classList.toggle('bcm-chat-closed', chatClosed);
+    root.classList.toggle('bcm-chat-hidden', chatHiddenFor !== null);
     // Twitch mode's Cinema view never shows the top bar, whatever the auto-hide setting.
     root.classList.toggle('bcm-hide-masthead', settings.autoHideMasthead || (twitch && theater));
     root.style.setProperty('--bcm-chat-w', `${bcmClampChatWidth(settings.chatWidth)}px`);
 
     if (chatOpen) attachGrabber();
     if (!chatOpen) root.classList.remove('bcm-chat-collapsing');
-    if (twitch) {
-      measureInfo();
-      if (!chatOpen) attachShowChatButton();
-    }
+    if (twitch) measureInfo();
+    if (chatOpen || chatClosed) attachChatToggle(chatOpen);
     // Twitch mode's Cinema view doesn't scroll; start it at the top.
     if (enteringTwitchTheater) window.scrollTo(0, 0);
     if (!theater || (twitch && theater)) setMastheadShown(false);
     if (changed) nudgePlayerSize();
+  }
+
+  // Twitch mode and the open-chat button only apply to livestreams and replays with chat. YouTube
+  // marks them with should-stamp-chat (still set while the chat is closed), but also sets it when the
+  // chat or chat replay is turned off; then the chat frame gets hide-chat-frame and shows nothing.
+  // Closing the chat sets hide-chat-frame too, but then YouTube's own Show chat button is there.
+  function hasChat() {
+    if (!flexy.hasAttribute('should-stamp-chat')) return false;
+    const frame = flexy.querySelector('ytd-live-chat-frame#chat');
+    return !frame?.hasAttribute('hide-chat-frame') || !!youTubeShowChatButton();
   }
 
   // The player computes its video size from its container; tell it the container changed.
@@ -60,8 +86,12 @@
     const found = document.querySelector('ytd-watch-flexy');
     if (found === flexy) return;
     flexyObserver?.disconnect();
+    chatFrameObserver?.disconnect();
     flexy = found;
     if (flexy) {
+      // The chat frame can appear, or have its chat turned off, after the attributes above change.
+      chatFrameObserver = new MutationObserver(update);
+      chatFrameObserver.observe(flexy, { attributes: true, subtree: true, attributeFilter: ['hide-chat-frame'] });
       flexyObserver = new MutationObserver(() => {
         update();
         maybeAutoTheater();
@@ -97,23 +127,25 @@
     nudgePlayerSize();
   }
 
-  // With the chat closed, YouTube's own Show chat button ends up out of reach (below the comments, or
-  // hidden in Cinema mode), so put Twitch's expand-chat icon on the corner of the video. It presses
-  // YouTube's button, and borrows its label for the tooltip so it matches the page language.
-  function attachShowChatButton() {
-    let button = document.getElementById('bcm-show-chat');
+  // In Cinema and Twitch mode, a Twitch-style button on the video's top-right corner shows and hides
+  // the chat, in place of the chat's own close button (hidden by chat-messages.css). Showing a chat
+  // that YouTube closed presses YouTube's Show chat button, whose label the tooltip borrows so it
+  // matches the page language.
+  function attachChatToggle(chatOpen) {
+    let button = document.getElementById('bcm-chat-toggle');
     if (!button) {
       button = document.createElement('button');
-      button.id = 'bcm-show-chat';
+      button.id = 'bcm-chat-toggle';
       button.type = 'button';
       button.append(expandChatIcon());
-      button.addEventListener('click', () => youTubeShowChatButton()?.click());
+      button.addEventListener('click', () => (root.classList.contains('bcm-chat-open') ? hideChat() : showChat()));
     }
-    const label = youTubeShowChatButton()?.textContent.trim() || 'Show chat';
+    const label = chatOpen ? 'Hide chat' : youTubeShowChatButton()?.textContent.trim() || 'Show chat';
     button.dataset.tooltip = label;
     button.setAttribute('aria-label', label);
     if (button.parentElement !== flexy) flexy.append(button);
   }
+
 
   // Built with DOM calls rather than innerHTML, which YouTube's Trusted Types policy blocks.
   function expandChatIcon() {
@@ -138,6 +170,24 @@
 
   function youTubeShowChatButton() {
     return flexy.querySelector('ytd-live-chat-frame#chat #show-hide-button button');
+  }
+
+  // Closing the chat makes YouTube unload it, and showing it again loads it from scratch. In Cinema
+  // and Twitch mode, where the extension lays out the chat, it's hidden instead and comes back as it
+  // was.
+  function hideChat() {
+    if (!root.classList.contains('bcm-chat-open')) return;
+    chatHiddenFor = flexy.getAttribute('video-id');
+    update();
+  }
+
+  function showChat() {
+    if (chatHiddenFor !== null) {
+      chatHiddenFor = null;
+      update();
+    } else {
+      youTubeShowChatButton()?.click();
+    }
   }
 
   // ---- Chat width grabber ----
@@ -179,7 +229,7 @@
       window.removeEventListener('blur', onEnd);
       root.classList.remove('bcm-resizing-chat');
       chrome.storage.sync.set({ chatWidth: settings.chatWidth });
-      if (root.classList.contains('bcm-chat-collapsing')) closeChat();
+      if (root.classList.contains('bcm-chat-collapsing')) hideChat();
     };
 
     grabber.addEventListener('pointerdown', (event) => {
@@ -195,19 +245,13 @@
     return grabber;
   }
 
-  // update() clears the collapsed preview once YouTube reports the chat closed. If the button
-  // isn't found or doesn't work, bring the chat back rather than leaving it invisible.
+  // Closes the chat the YouTube way (it unloads).
   function closeChat() {
     const chatDoc = document.getElementById('chatframe')?.contentDocument;
     const button =
       chatDoc?.querySelector('yt-live-chat-header-renderer #close-button button') ||
       document.querySelector('ytd-live-chat-frame#chat #show-hide-button button');
     button?.click();
-    setTimeout(() => {
-      if (!root.classList.contains('bcm-chat-collapsing')) return;
-      root.classList.remove('bcm-chat-collapsing');
-      nudgePlayerSize();
-    }, 1000);
   }
 
   // One resize event per frame while dragging.
@@ -226,7 +270,7 @@
   // consistent. If the user turns it off again on that video, leave it off until the next video.
   function maybeAutoTheater() {
     if (!settingsLoaded || !settings.enabled || !settings.autoTheater || !isWatchPage()) return;
-    const videoId = new URLSearchParams(location.search).get('v');
+    const videoId = new URLSearchParams(location.search).get('v') || flexy.getAttribute('video-id');
     if (!videoId || videoId === autoTheaterVideoId) return;
     autoTheaterVideoId = videoId;
     if (flexy.hasAttribute('theater') || document.fullscreenElement) return;

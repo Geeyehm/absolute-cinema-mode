@@ -1,0 +1,21 @@
+/*
+ * Runs inside the live chat and chat replay iframes (/live_chat, /live_chat_replay).
+ * html.bcm-enabled is set by chat-frame.js while the extension is on, and html.bcm-page-chat-open
+ * while the page lays out the chat (Cinema or Twitch mode).
+ *
+ * YouTube keeps 24px empty on the right of every message for the hover menu (three dots), although
+ * the menu is positioned over the message anyway. Let the text use that space; the menu still
+ * appears on hover, on top of the text, with YouTube's fade behind it.
+ */
+html.bcm-enabled yt-live-chat-text-message-renderer:not([in-banner]) {
+  padding-right: 8px !important;
+}
+
+html.bcm-enabled yt-live-chat-text-message-renderer #menu {
+  z-index: 1;
+}
+
+/* In Cinema and Twitch mode the button on the video's corner hides the chat instead. */
+html.bcm-enabled.bcm-page-chat-open yt-live-chat-header-renderer #close-button {
+  display: none !important;
+}

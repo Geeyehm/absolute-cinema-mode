@@ -19,6 +19,22 @@
     <!-- Newest first. Each release is a <section data-version="x.y.z">; the one matching the
          installed version is marked by changelog.js. -->
 
+    <section data-version="1.0.4">
+      <h2>1.0.4 <span class="date">23 October 2026</span></h2>
+      <ul>
+        <li>Twitch mode: no more grey bars above and below the stream outside Cinema mode. The player keeps the video's shape, and any bars at the sides are black.</li>
+        <li>Twitch mode: the video has square corners outside Cinema mode too.</li>
+        <li><strong>Twitch-style chat button.</strong> In Cinema mode and Twitch mode, a button on the top-right corner of the video hides and shows the chat, in place of the chat's own close button. It fades out with the video controls.</li>
+        <li>Twitch mode leaves streams and replays with chat turned off alone, instead of showing an open-chat arrow that did nothing.</li>
+        <li>Cinema mode: the chat now reaches the very bottom of the window, without a 1px line under it.</li>
+        <li>Cinema mode with the top bar not auto-hidden: the chat lines up with the video again, instead of starting under the top bar and stopping short of the bottom.</li>
+        <li>Switching between Cinema mode and the regular view no longer reloads the chat, so you keep your place and the messages already loaded. (In browsers that support it, such as Chrome 133 and later; others reload the chat as before.)</li>
+        <li>Hiding the chat keeps it loaded, so it comes back instantly, where you left it, when you show it again.</li>
+        <li>Chat messages use the full width of the chat. The three-dot menu shows on top of the text when you hover a message, instead of keeping an empty strip free for it.</li>
+        <li>Channel live links (youtube.com/@channel/live) now get Cinema mode and Twitch mode like any other stream.</li>
+      </ul>
+    </section>
+
     <section data-version="1.0.3">
       <h2>1.0.3 <span class="date">5 October 2026</span></h2>
       <ul>

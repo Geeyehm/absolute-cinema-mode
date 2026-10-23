@@ -3,6 +3,7 @@
  *   .bcm-theater        - extension enabled and ytd-watch-flexy has [theater]
  *   .bcm-twitch         - Twitch mode is on and the page has live chat or a chat replay
  *   .bcm-chat-open      - live chat (or replay chat) is present and expanded, in Cinema or Twitch mode
+ *   .bcm-chat-closed    - the page has chat but it is closed, in Cinema or Twitch mode
  *   .bcm-hide-masthead  - auto-hide top bar setting is on
  *   .bcm-masthead-shown - top bar temporarily revealed by hover/focus
  *   .bcm-scrolled       - page is scrolled down; the top bar stays shown
@@ -56,6 +57,13 @@ html.bcm-theater.bcm-chat-open ytd-watch-flexy #panels-full-bleed-container {
 
 /* ---- Chat docked to the right of the player, scrolling with the page ---- */
 
+/* Anchors the docked chat (it would otherwise sit under the top bar when that isn't auto-hidden) and
+   the show/hide chat button. */
+html.bcm-theater ytd-watch-flexy,
+html.bcm-twitch ytd-watch-flexy {
+  position: relative;
+}
+
 html.bcm-theater.bcm-chat-open ytd-watch-flexy #chat-container {
   position: absolute !important;
   top: 0 !important;
@@ -77,9 +85,10 @@ html.bcm-theater.bcm-chat-open ytd-watch-flexy ytd-live-chat-frame#chat {
   max-height: none !important;
   margin: 0 !important;
   border-radius: 0 !important;
-  /* Keep the divider against the video and the bottom edge; drop the top and right edges. */
+  /* Keep only the divider against the video; the other edges sit on the window's edges. */
   border-top-width: 0 !important;
   border-right-width: 0 !important;
+  border-bottom-width: 0 !important;
 }
 
 html.bcm-theater.bcm-chat-open ytd-watch-flexy ytd-live-chat-frame#chat #chatframe {
@@ -132,6 +141,11 @@ html.bcm-resizing-chat ytd-live-chat-frame#chat {
   pointer-events: none !important;
 }
 
+/* Chat closed in Cinema or Twitch mode: hidden but still loaded, so showing it doesn't reload it. */
+html.bcm-chat-hidden ytd-watch-flexy #chat-container {
+  display: none !important;
+}
+
 /* Dragged below the minimum width: preview the chat closed until release. */
 html.bcm-theater.bcm-chat-open.bcm-chat-collapsing ytd-watch-flexy #panels-full-bleed-container {
   width: 0 !important;
@@ -153,10 +167,6 @@ html.bcm-theater ytd-watch-flexy #columns {
 }
 
 /* ---- Twitch mode (livestreams and replays) ---- */
-
-html.bcm-twitch ytd-watch-flexy {
-  position: relative;
-}
 
 /* Chat sits flush against the edges: no rounded corners and only the divider on its left. */
 html.bcm-twitch.bcm-chat-open ytd-watch-flexy ytd-live-chat-frame#chat {
@@ -202,16 +212,25 @@ html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #secondary-inner {
 }
 
 /* The player fills the space left above the title and channel/buttons row (24px is the gap above
-   the title plus a little breathing room below the buttons). */
+   the title plus a little breathing room below the buttons). It's never taller than 16:9 at the
+   column's width, so there are no bars above and below the video. Any bars left at the sides are
+   black: with ambient mode on, the player is see-through and the glow behind it would show. */
 html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #player-container-outer {
   max-width: none !important;
   min-width: 0 !important;
+  container-type: inline-size;
 }
 
 html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #player-container-inner {
   padding-top: 0 !important;
-  height: calc(100vh - var(--ytd-masthead-height, 56px) - var(--bcm-info-h, 93px) - 24px) !important;
+  height: min(calc(100vh - var(--ytd-masthead-height, 56px) - var(--bcm-info-h, 93px) - 24px), 100cqw * 9 / 16) !important;
   min-height: 240px;
+  background: #000;
+}
+
+/* Square corners, like Cinema mode, instead of YouTube's rounded player. */
+html.bcm-twitch:not(.bcm-theater) ytd-watch-flexy #ytd-player {
+  border-radius: 0 !important;
 }
 
 html.bcm-twitch.bcm-chat-open:not(.bcm-theater) ytd-watch-flexy #chat-container {
@@ -242,12 +261,14 @@ html.bcm-twitch.bcm-theater #bcm-hot-zone {
   display: none !important;
 }
 
-/* Shown on the video's corner while the chat is closed (added by content.js). */
-#bcm-show-chat {
+/* Show/hide chat button on the video's top-right corner, in Cinema mode and Twitch mode, in place of
+   the chat's own close button (added by content.js). Twitch's expand-chat arrow while the chat is
+   closed, mirrored to collapse it while it's open. */
+#bcm-chat-toggle {
   display: none;
 }
 
-html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat {
+:is(html.bcm-chat-open, html.bcm-chat-closed) ytd-watch-flexy > #bcm-chat-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -266,28 +287,37 @@ html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat {
   transition: opacity 0.25s, background-color 0.1s;
 }
 
+html.bcm-chat-open ytd-watch-flexy > #bcm-chat-toggle {
+  right: calc(var(--bcm-chat-w) + 12px);
+}
+
+html.bcm-chat-open #bcm-chat-toggle svg {
+  transform: scaleX(-1);
+}
+
 /* Fade out with the player controls (YouTube adds ytp-autohide to the player when it hides them).
    The button sits over the player rather than inside it, so moving onto it counts as leaving the
-   player; keep it while hovered or focused. */
-html.bcm-twitch ytd-watch-flexy:has(#movie_player.ytp-autohide) > #bcm-show-chat:not(:hover):not(:focus-visible) {
+   player; keep it while hovered or focused. Out of the way while the chat is dragged. */
+ytd-watch-flexy:has(#movie_player.ytp-autohide) > #bcm-chat-toggle:not(:hover):not(:focus-visible),
+html.bcm-resizing-chat #bcm-chat-toggle {
   opacity: 0;
 }
 
 /* No background until hovered, like Twitch; the shadow keeps the arrow visible on bright video. */
-#bcm-show-chat svg {
+#bcm-chat-toggle svg {
   width: 20px;
   height: 20px;
   fill: currentColor;
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
 }
 
-html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat:hover,
-html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat:focus-visible {
+#bcm-chat-toggle:hover,
+#bcm-chat-toggle:focus-visible {
   background: rgba(255, 255, 255, 0.2);
 }
 
 /* Tooltip below the button, right-aligned so it stays inside the window. */
-#bcm-show-chat::after {
+#bcm-chat-toggle::after {
   content: attr(data-tooltip);
   position: absolute;
   top: calc(100% + 6px);
@@ -303,8 +333,8 @@ html.bcm-twitch:not(.bcm-chat-open) ytd-watch-flexy > #bcm-show-chat:focus-visib
   transition: opacity 0.1s;
 }
 
-#bcm-show-chat:hover::after,
-#bcm-show-chat:focus-visible::after {
+#bcm-chat-toggle:hover::after,
+#bcm-chat-toggle:focus-visible::after {
   opacity: 1;
   transition-delay: 0.3s;
 }
